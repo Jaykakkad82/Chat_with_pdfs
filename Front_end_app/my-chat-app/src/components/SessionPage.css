@@ -47,7 +47,7 @@
 
 .sidebar button {
   padding: 10px; /* Padding inside the button */
-  background-color: #0d0d0d; /* Button background color (blue) */
+  background-color: #0d0d0d; /* Button background color */
   color: white; /* White text color */
   border: none; /* No border */
   border-radius: 4px; /* Rounded corners */
@@ -58,7 +58,7 @@
 }
 
 .sidebar button:hover {
-  background-color:rgb(203, 198, 198); /* Darker blue on hover */
+  background-color: rgb(203, 198, 198); /* Darker grey on hover */
   color: black;
 }
 
@@ -91,6 +91,30 @@
   padding: 10px;
   margin-bottom: 10px;
   overflow-y: scroll; /* Scrollable area */
+  background-color: #f9f9f9; /* Light background color for chat window */
+}
+
+/* Message styling */
+.user-message {
+  align-self: flex-end; /* Align user messages to the right */
+  background-color: #3e92eb; /* Blue background for user messages */
+  color: white; /* White text color */
+  padding: 10px; /* Padding inside the message */
+  border-radius: 10px 10px 0 10px; /* Rounded corners */
+  margin-bottom: 10px; /* Space below the message */
+  max-width: 85%; /* Limit the width of the message bubble */
+  word-wrap: break-word; /* Ensure long words break to a new line */
+}
+
+.bot-message {
+  align-self: flex-start; /* Align bot messages to the left */
+  background-color: #e0e0e0; /* Grey background for bot messages */
+  color: #333; /* Dark text color */
+  padding: 10px; /* Padding inside the message */
+  border-radius: 10px 10px 10px 0; /* Rounded corners */
+  margin-bottom: 10px; /* Space below the message */
+  max-width: 85%; /* Limit the width of the message bubble */
+  word-wrap: break-word; /* Ensure long words break to a new line */
 }
 
 .chat-input {
