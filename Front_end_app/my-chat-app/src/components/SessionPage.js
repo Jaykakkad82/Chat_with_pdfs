@@ -43,7 +43,8 @@ const SessionPage = () => {
       const formData = new FormData();
       pdfFiles.forEach((file, index) => {
         if (file) {
-          formData.append(`pdfs[${index}]`, file);
+        //   formData.append(`pdfs[${index}]`, file);
+        formData.append('pdfs', file);
         }
       });
       formData.append('session_id', sessionId);
