@@ -2,18 +2,28 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './SessionPage.css';
 
+// Define the base URL for the backend
+const BASE_URL = 'http://localhost:5000/api/v1';  // Change this during deployment
+
 const SessionPage = () => {
   const [apiKey, setApiKey] = useState('');
   const [pdfFiles, setPdfFiles] = useState(['']);
   const [statusMessage, setStatusMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [userInput, setUserInput] = useState('');
+  const [sessionId, setSessionId] = useState('unique-session-id'); // Example session ID, you can generate this dynamically
 
   const handleApiKeySubmit = async () => {
     try {
-      const response = await axios.post('/api/store-api-key', { apiKey });
-      setStatusMessage('Stored for the session');
+      const response = await axios.post(`${BASE_URL}/store-api-key`, {
+        session_id: sessionId,
+        api_key: apiKey,
+      });
+      setStatusMessage('API Key stored for the session');
     } catch (error) {
       console.error('Error storing API key', error);
+      setStatusMessage('Failed to store API key');
     }
   };
 
@@ -36,13 +46,37 @@ const SessionPage = () => {
           formData.append(`pdfs[${index}]`, file);
         }
       });
+      formData.append('session_id', sessionId);
+      formData.append('api_key', apiKey); // Include API key in the same request
 
-      await axios.post('/api/upload-pdfs', formData);
+      const response = await axios.post(`${BASE_URL}/upload-pdfs`, formData);
       setStatusMessage('Upload complete, you can now chat with this PDF');
     } catch (error) {
       console.error('Error uploading PDFs', error);
+      setStatusMessage('Failed to upload PDFs');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleAskQuestion = async () => {
+    if (!userInput.trim()) return;
+
+    const newChatMessages = [...chatMessages, { sender: 'user', message: userInput }];
+    setChatMessages(newChatMessages);
+    setUserInput('');
+
+    try {
+      const response = await axios.post(`${BASE_URL}/ask-question`, {
+        session_id: sessionId,
+        question: userInput,
+      });
+      
+      const botResponse = response.data.answer;
+      setChatMessages([...newChatMessages, { sender: 'bot', message: botResponse }]);
+    } catch (error) {
+      console.error('Error asking question', error);
+      setChatMessages([...newChatMessages, { sender: 'bot', message: 'Failed to get response' }]);
     }
   };
 
@@ -73,7 +107,7 @@ const SessionPage = () => {
             />
           ))}
           <button onClick={handleAddFile}>Add More</button>
-          <button onClick={handlePdfSubmit}>Submit PDFs</button>
+          <button onClick={handlePdfSubmit} disabled={isProcessing}>Submit PDFs</button>
         </div>
 
         {statusMessage && <p>{statusMessage}</p>}
@@ -83,11 +117,20 @@ const SessionPage = () => {
       <div className="chatbox">
         <h3>Chat with the PDF</h3>
         <div className="chat-window">
-          {/* Messages will appear here */}
+          {chatMessages.map((msg, index) => (
+            <div key={index} className={msg.sender === 'user' ? 'user-message' : 'bot-message'}>
+              {msg.message}
+            </div>
+          ))}
         </div>
         <div className="chat-input">
-          <input type="text" placeholder="Type your message here..." />
-          <button>Send</button>
+          <input 
+            type="text" 
+            placeholder="Type your message here..." 
+            value={userInput} 
+            onChange={(e) => setUserInput(e.target.value)} 
+          />
+          <button onClick={handleAskQuestion}>Send</button>
         </div>
       </div>
     </div>
