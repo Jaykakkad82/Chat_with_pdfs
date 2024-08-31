@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './SessionPage.css';
+import { v4 as uuidv4 } from 'uuid';  // Import UUID generator
 
 // Define the base URL for the backend
 const BASE_URL = 'http://localhost:5000/api/v1';  // Change this during deployment
@@ -12,7 +13,16 @@ const SessionPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [userInput, setUserInput] = useState('');
-  const [sessionId, setSessionId] = useState('unique-session-id'); // Example session ID, you can generate this dynamically
+  const [sessionId, setSessionId] = useState(uuidv4());  // Generate a unique session ID
+
+  const chatWindowRef = useRef(null);  // Create a ref for the chat window
+
+  // Automatically scroll to the bottom of the chat window when a new message is added
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   const handleApiKeySubmit = async () => {
     try {
@@ -41,14 +51,13 @@ const SessionPage = () => {
     setIsProcessing(true);
     try {
       const formData = new FormData();
-      pdfFiles.forEach((file, index) => {
+      pdfFiles.forEach((file) => {
         if (file) {
-        //   formData.append(`pdfs[${index}]`, file);
-        formData.append('pdfs', file);
+          formData.append('pdfs', file);
         }
       });
       formData.append('session_id', sessionId);
-      formData.append('api_key', apiKey); // Include API key in the same request
+      formData.append('api_key', apiKey);
 
       const response = await axios.post(`${BASE_URL}/upload-pdfs`, formData);
       setStatusMessage('Upload complete, you can now chat with this PDF');
@@ -117,7 +126,7 @@ const SessionPage = () => {
       
       <div className="chatbox">
         <h3>Chat with the PDF</h3>
-        <div className="chat-window">
+        <div className="chat-window" ref={chatWindowRef}> {/* Attach the ref to the chat window */}
           {chatMessages.map((msg, index) => (
             <div key={index} className={msg.sender === 'user' ? 'user-message' : 'bot-message'}>
               {msg.message}
