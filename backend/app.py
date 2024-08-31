@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 # from dotenv import load_dotenv
 from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
 # from langchain.chat_models import ChatOpenAI
@@ -30,11 +30,10 @@ def get_pdf_text(pdf_files):
     return text
 
 def get_text_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="",
-        chunk_size=800,
-        chunk_overlap=50,
-        length_function=len
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1500,  # Larger chunk size
+        chunk_overlap=200,  # Larger overlap
+        separators=["\n\n", "\n", " ", ""]
     )
     chunks = text_splitter.split_text(text)
     return chunks
@@ -46,10 +45,11 @@ def get_vectorstore(text_chunks, api_key):
 
 def get_conversation_chain(vectorstore, api_key):
     llm = ChatOpenAI(api_key=api_key)
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
-        retriever=vectorstore.as_retriever(),
+        retriever=retriever,
         memory=memory
     )
     return conversation_chain
