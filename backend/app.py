@@ -32,8 +32,8 @@ def get_pdf_text(pdf_files):
 def get_text_chunks(text):
     text_splitter = CharacterTextSplitter(
         separator="",
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=800,
+        chunk_overlap=50,
         length_function=len
     )
     chunks = text_splitter.split_text(text)
